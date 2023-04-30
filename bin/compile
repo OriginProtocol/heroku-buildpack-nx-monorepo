@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+# Ensure wildcards in globs match dotfiles too.
+shopt -s dotglob
+
+indent() {
+    sed -u 's/^/      /'
+}
+
+BUILD_DIR=$1
+CACHE_DIR=$2
+ENV_DIR=$3
+STAGE="$(mktemp -d)"
+WORKSPACE_FILE="${BUILD_DIR:?}/workspace.json"
+
+if [ ! -f "${ENV_DIR}/APP_BASE" ]; then
+    echo "APP_BASE was not set. Aborting" | indent
+    exit 1
+
+APP_BASE="$(cat "${ENV_DIR}/APP_BASE")"
+echo "Use ${APP_BASE} as app dir."
+
+elif [ ! -f "${ENV_DIR}/PROJECT_NAME" ]; then
+    echo "PROJECT_NAME was not set. Aborting" | indent
+    exit 1
+fi
+
+PROJECT_NAME=$(cat "${ENV_DIR}/PROJECT_NAME")
+echo "Use ${PROJECT_NAME} as project name."
+
+cd "${BUILD_DIR}"
+
+echo "Start check if project is affected."
+echo "${BUILD_DIR}/npm install"
+npm install
+
+echo "Check if project ${PROJECT_NAME} is affected."
+echo "${BUILD_DIR}/node node_modules/.bin/nx affected:libs --plain --base=origin/main~1 --exclude=ui-assets,ui-shared"
+AFFECTED=$(node node_modules/.bin/nx affected:libs --plain --base=origin/main~1 --exclude=ui-assets,ui-shared)
+if [ "$AFFECTED" != "" && [ $AFFECTED == *"${PROJECT_NAME}"* ] ]; then
+  echo "Project ${PROJECT_NAME} is affected so the built will start now."
+else
+  echo "No Libraries to publish"
+fi
