@@ -35,8 +35,8 @@ echo "${BUILD_DIR}/yarn install --frozen-lockfile"
 yarn install --frozen-lockfile
 
 echo "Check if project ${PROJECT_NAME} is affected."
-echo "${BUILD_DIR}/node node_modules/.bin/nx print-affected --type=app --base=main~1 --head=HEAD --select=projects"
-AFFECTED=$(node node_modules/.bin/nx print-affected --type=app --base=main~1 --head=HEAD --select=projects)
+echo "${BUILD_DIR}/node node_modules/.bin/nx print-affected --type=app --base=origin/main~1 --head=HEAD --select=projects"
+AFFECTED=$(node node_modules/.bin/nx print-affected --type=app --base=origin/main~1 --head=HEAD --select=projects)
 if [ "$AFFECTED" != "" && [ $AFFECTED == *"${PROJECT_NAME}"* ] ]; then
   echo "Project ${PROJECT_NAME} is affected so the built will start now."
 else
